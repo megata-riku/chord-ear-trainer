@@ -1,0 +1,33 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>実験結果と限界</title><style>body{font:16px/1.9 system-ui,sans-serif;color:#243e35;background:#f5f3ec;margin:0}main{max-width:900px;margin:auto;padding:32px 24px}a{color:#24654d}h1,h2,h3{line-height:1.5;margin-top:32px}pre{overflow:auto;background:#e9ecdf;padding:16px;border-radius:10px}code{font-size:.9em}.scroll{overflow:auto}table{border-collapse:collapse;width:100%}td,th{padding:10px;text-align:left;border-bottom:1px solid #ccd2c5}p,li{overflow-wrap:anywhere}nav{display:flex;gap:20px}</style></head><body><main><nav><a href="../guide.html">← 設計・検証の説明へ</a><a href="results.md" download>Markdownを保存</a></nav><h1>実験結果と限界</h1>
+<h2>実利用履歴の探索的評価</h2>
+<p>2026-10-30に受領したv7の実験JSONから集計値だけを転記。原本・回答ID・特徴量・利用者IDはリポジトリに含めていません。入力原本SHA-256: <code>627b3b87ead3c93d2a88c5a3f5a3acd6fcad3e66739610c2c287fbaab4ab553e</code>。このハッシュだけでは原本を入手・再現できません。</p>
+<p>有効338回答・41回、学習267回答・33回、評価71回答・8回。未来の練習回を評価し、評価中は提出済み回答で過去特徴量を更新、モデルの重みは固定します。</p>
+<div class="scroll"><table>
+<tr><th>方法</th><th>Brier ↓</th><th>Log loss ↓</th></tr>
+<tr><td>同じ条件の正答率</td><td>0.194749</td><td>0.578383</td></tr>
+<tr><td>全体の正答率</td><td>0.196813</td><td>0.582909</td></tr>
+<tr><td>回帰・固定共有</td><td>0.204005</td><td>0.599305</td></tr>
+<tr><td>回帰・自動共有</td><td>0.204008</td><td>0.599335</td></tr>
+<tr><td>決定木・固定共有</td><td>0.226994</td><td>0.645793</td></tr>
+<tr><td>ブースティング・自動共有</td><td>0.210780</td><td>0.613295</td></tr>
+</table></div>
+<h3>取り違え情報の比較</h3>
+<p>同じ71問・同じ共有設定で、情報あり／なしを学習し直した結果。差は「あり−なし」で、負なら誤差が小さい値です。</p>
+<div class="scroll"><table>
+<tr><th>モデル</th><th>Brier差</th><th>Log loss差</th></tr>
+<tr><td>logistic</td><td>-0.000682</td><td>-0.001521</td></tr>
+<tr><td>tree</td><td>-0.037277</td><td>-0.084967</td></tr>
+<tr><td>boosted</td><td>-0.013910</td><td>-0.030648</td></tr>
+</table></div>
+<h2>この結果から言えること</h2>
+<p>今回の評価では同じ条件の正答率が最良。取り違え情報は3モデルすべてで追加ありの誤差が小さかったが、回帰の差は小さい。共有設定の内側検証は実行され、回帰は控えめ、木・ブースティングは広めを選択した。設定選びに外側71問の正誤は使わない。</p>
+<h2>まだ言えないこと</h2>
+<ul>
+<li>1人・71問の探索的結果であり、統計的な優位性や他利用者への一般化は未確認。</li>
+<li>前の版より数値が良くても、実装・評価対象・形式・試聴条件が変わっているため、履歴増加だけの効果とは言えない。</li>
+<li>試聴オフの3コード4択は学習側0件・評価側42件。評価対象の条件の偏りが大きい。</li>
+<li>適応出題によって上達したか、ルール式とモデル式のどちらが学習に有効かは未検証。</li>
+<li>多数の方式の比較は探索であり、同じ評価結果を何度も見て方式を調整すると楽観的な判断につながり得る。次の未来の回答で確認する。</li>
+</ul>
+<h2>再現性の範囲</h2>
+<p>人工データは <code>npm run demo:data</code> で再生成し、CLIとブラウザで同じ予測実装を実行できる。人工データの高低を実利用者の精度の証拠には使わない。上記の実利用集計を追試するには非公開の元履歴と対応ソースが必要。比較の再実行では作成日時が変わるため、JSON全体のバイト一致ではなく使用ID・モデル・予測・指標を確認する。</p></main></body></html>

@@ -1,0 +1,12 @@
+const fs=require('node:fs'),path=require('node:path');const {MusicTheory:T,ReferencePolicy:R,PracticeModel:M,Progression:P,EarAdaptive:A}=require('./runtime.cjs')();let seed=20261030;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;},records=[];
+for(let session=0;session<36;session++){
+ const task=session%3?'chord_progression':'chord_identity',length=session%2?2:3,inputMode=session%4<2?'ordered':'four',key=['C_major','G_major','A_natural_minor','D_natural_minor'][session%4],instrument=['piano','guitar','electric'][Math.floor(session/4)%3],domain=M.identityOptions('diatonic',key),plan=task==='chord_progression'?P.createPlan(length,inputMode,key,random):null;
+ for(let i=0;i<10;i++){
+  const time=Date.parse('2026-01-01T00:00:00Z')+session*3600000+i*10000,config={task,length,inputMode,key,instrument,octave:instrument==='piano'?0:null,guitarStyle:instrument==='piano'?null:'strum',duration:.8,referenceAllowed:false,historyCutoffAt:new Date(time).toISOString(),strategy:'rule'},item=plan?plan.items[i]:{solution:domain[i%7],options:domain},q=A.question(config,item);q.referencePolicyVersion=R.version;q.selectionPolicy='uniform';q.generatorVersion='synthetic-demo-v1';
+  const probability=(q.quality==='minor'?.55:.8)-(instrument==='electric'?.05:0),correct=random()<probability,solution=item.solution.key;let answer=solution;
+  if(!correct){if(q.progression?.inputMode==='ordered'){const cs=P.decode(solution),pos=i%cs.length,alternative=domain.find(o=>o.key!==P.chordKey(cs[pos]));cs[pos]={rootMidi:alternative.rootMidi,quality:T.qualityIds[alternative.quality]};answer=P.keyOf(cs);}else answer=q.options.find(o=>o!==solution);}
+  if(q.progression)q.progression.positionCorrect=Array.from(P.positions(q.progression.chords,P.decode(answer)));
+  records.push({schemaVersion:1,id:'synthetic-demo-'+session+'-'+i,userId:'synthetic-demo',sessionId:'synthetic-session-'+session,correct,answer,answeredAt:new Date(time+2000).toISOString(),playbackCount:1,referencePlaybackCount:0,referenceAfterAnswerPlaybackCount:0,responseTimeMs:1000,question:q});
+ }
+}
+const backup={format:'ear-lab-history',schemaVersion:1,synthetic:true,description:'動作確認専用の人工データ。学習効果・実利用者の予測精度の証拠ではありません。',attempts:records};M.validateBackup(backup);const out=path.resolve(process.argv[2]||path.join(__dirname,'../dist/demo-history.json'));fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,JSON.stringify(backup,null,2)+'\n');console.log('Synthetic demo: '+records.length+' answers → '+out);

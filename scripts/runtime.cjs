@@ -1,0 +1,2 @@
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+module.exports=()=>{const context=vm.createContext({});for(const file of ['music-theory','reference-policy','practice-model','progression','guitar','transfer-analysis','related-pooling','confusion-evidence','prediction-model','adaptive-selection'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../dist',file+'.js'),'utf8'),context,{filename:file+'.js'});return vm.runInContext('({MusicTheory,ReferencePolicy,PracticeModel,Progression,EarPrediction,EarAdaptive})',context);};

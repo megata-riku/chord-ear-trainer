@@ -1,0 +1,53 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>コードの聴き取り単語帳</title><style>body{font:16px/1.9 system-ui,sans-serif;color:#243e35;background:#f5f3ec;margin:0}main{max-width:900px;margin:auto;padding:32px 24px}a{color:#24654d}h1,h2,h3{line-height:1.5;margin-top:32px}pre{overflow:auto;background:#e9ecdf;padding:16px;border-radius:10px}code{font-size:.9em}.scroll{overflow:auto}table{border-collapse:collapse;width:100%}td,th{padding:10px;text-align:left;border-bottom:1px solid #ccd2c5}p,li{overflow-wrap:anywhere}nav{display:flex;gap:20px}</style></head><body><main><nav><a href="../guide.html">← 設計・検証の説明へ</a><a href="README.md" download>Markdownを保存</a></nav><h1>コードの聴き取り単語帳</h1>
+<p>音を聴いてコードを答え、響きの違いを確認し、回答履歴から苦手なコード・進行を練習するWebアプリです。正答確率の予測と、予測を利用した適応出題をブラウザ内で実験できます。</p>
+<p><strong>コードを聴いて、答える。苦手な響きをくり返す。耳コピのためのコード聴き取り練習アプリです。</strong></p>
+<h2>作ったきっかけ</h2>
+<p>このアプリを作るきっかけは、作曲をしてみたいと思ったことでした。好きな曲を耳コピするところから始めようとしましたが、いざ聴いてみると、どのコードが鳴っているのかまったく分かりませんでした。</p>
+<p>英単語を単語帳で覚えるように、コードの響きも、聴いて答える練習をくり返せたらいい。そう考えて、このアプリを作り始めました。回答履歴から苦手なコードやコード進行を見つけ、次の練習に生かす仕組みも加えています。</p>
+<h2>まず試す</h2>
+<p>Node.js 24以降（検証環境：24）。外部npmパッケージのインストール・ビルドは不要です。</p>
+<p>ZIPを展開した場合は、<code>package.json</code> があるフォルダをVS Codeで開きます。</p>
+<pre><code>npm start</code></pre>
+<p>WindowsのPowerShellで <code>npm.ps1</code> の実行が拒否される場合は、<code>npm.cmd start</code> を使います。テストは <code>npm.cmd test</code>。セキュリティ設定の変更は不要です。終了はターミナルで <code>Ctrl + C</code>。</p>
+<p><code>http://127.0.0.1:8000/</code> を開き、小さな音量から開始します。最初の音声読み込みには少し時間がかかります。初期状態はステップ練習です。自由練習では調・楽器・回答形式・出題方式を選べます。</p>
+<p>公開先は現在本人限定です。他の人の試用には、このローカル起動手順を使います。リポジトリの公開・共有範囲変更は別途判断します。</p>
+<h2>実装した体験</h2>
+<ul>
+<li>ピアノ、アコギ、エレキ、合成音3種。12長調・12自然短調、単一コードと2・3コード進行。</li>
+<li>ステップ練習は10問中9問以上で解放。進行4択と順番入力、回答後の比較再生、中断と復習。</li>
+<li>進行4択はmajor／minor・dimで候補の並びを調整し、候補作成後に正解を等確率で選択。minorとdimの採点は別。</li>
+<li>自由練習はルール式／モデル式／範囲全体。原則重点5問＋範囲全体5問、履歴がなければ全体10問。</li>
+<li>全体・同条件の正答率、ロジスティック回帰、決定木、ブースティングを比較。</li>
+<li>単一コードと順番入力の部分成績、隣接ペア、弱い関連履歴、選択肢に含まれる取り違え相手を予測に利用。</li>
+<li>IndexedDBに回答・練習・モデルを保存。JSONで保存・復元。自動のクラウド同期はありません。</li>
+</ul>
+<h2>設計で重視したこと</h2>
+<ol>
+<li>出題前に提出された回答だけを特徴量に使い、未来の正誤を混ぜない。</li>
+<li>練習回単位の時系列分割で評価。共有設定は学習側の内側検証だけで選択する。</li>
+<li>進行4択の誤答から各位置の誤認を推測しない。順番入力の明示的な回答を部分成績に使う。</li>
+<li>同一コードは調をまたいで共有し、楽器間はアコギ↔エレキだけ弱く共有。メジャー／マイナーは別の対象として保持する。</li>
+<li>少ない履歴で複雑なモデルを強制せず、ルール式への切替理由を保存する。</li>
+<li>予測精度と学習効果を分ける。出題後の正答率だけで上達や出題方式の優劣を主張しない。</li>
+</ol>
+<h2>追試と確認</h2>
+<pre><code>npm test
+npm run demo:data
+npm run experiment -- dist/demo-history.json artifacts/demo-report.json synthetic-demo</code></pre>
+<p>デモ履歴は決定的な人工データ360問です。ブラウザの「履歴を見る→JSONから復元」でも読み込めます。元の回答は上書きされず、別のデモ利用者として追加されます。予測画面でデモ利用者を選びます。<strong>適応出題は現在の利用者の履歴だけを使うため、デモ利用者の取り込みで自分用のモデル式が有効になるわけではありません。</strong></p>
+<p>CLIはブラウザと同じ予測実装を読み込みます。実験JSONには特徴量・正誤・回答IDが含まれるので、個人用の入力は <code>private-data/</code>、結果は <code>artifacts/</code> などGit管理外へ保存します。<code>.gitignore</code> は誤操作を完全に防ぐ仕組みではありません。</p>
+<h2>資料</h2>
+<ul>
+<li><a href="release-check.html">GitHub掲載前の確認記録</a></li>
+<li><a href="architecture.html">構成とデータの流れ</a></li>
+<li><a href="reproduction.html">再現・デモデータの手順</a></li>
+<li><a href="results.html">実験結果と限界</a></li>
+<li><a href="demo.html">3分デモ台本・説明の練習</a></li>
+<li><a href="adaptive-practice.html">適応出題の詳細</a></li>
+<li><a href="prediction-experiment.html">予測実験の変更履歴</a></li>
+</ul>
+<h2>技術構成・現在地</h2>
+<p>HTML/CSS/JavaScript、Web Audio、Web Worker、IndexedDB。学習器は小規模で検証しやすいJS実装です。Node.js CLIは同じコードを再利用します。</p>
+<p>MLの特徴量設計・時系列評価・追加効果の比較を中心にした作品です。再現コマンドとモデル記録を備えますが、継続学習の自動実行、モデルの自動昇格・ロールバック、CI/CD・外部監視基盤、クラウドの分析パイプラインはまだありません。大規模データ処理や本番MLOps運用の実績とは区別します。</p>
+<p>開発には生成AIを利用しています。制作過程では、練習体験・出題条件・共有範囲などを相談して決め、コード作成と検証をAIで支援しました。実際の担当範囲は、応募・公開時に本人が確認して説明します。</p>
+<p>音源の出典・ライセンスは <a href="../audio/CREDITS.txt">CREDITS</a> を参照。音源のライセンスをソース全体のライセンスとみなさないでください。個人履歴・音声の外部送信処理は実装していません。サイトへのアクセスや認証などの通信とは別の話です。</p></main></body></html>

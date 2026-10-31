@@ -1,0 +1,27 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GitHub掲載前の確認記録</title><style>body{font:16px/1.9 system-ui,sans-serif;color:#243e35;background:#f5f3ec;margin:0}main{max-width:900px;margin:auto;padding:32px 24px}a{color:#24654d}h1,h2,h3{line-height:1.5;margin-top:32px}pre{overflow:auto;background:#e9ecdf;padding:16px;border-radius:10px}code{font-size:.9em}.scroll{overflow:auto}table{border-collapse:collapse;width:100%}td,th{padding:10px;text-align:left;border-bottom:1px solid #ccd2c5}p,li{overflow-wrap:anywhere}nav{display:flex;gap:20px}</style></head><body><main><nav><a href="../guide.html">← 設計・検証の説明へ</a><a href="release-check.md" download>Markdownを保存</a></nav><h1>GitHub掲載前の確認記録</h1>
+<p>確認日：2026-10-31。入力は手元で微修正した ear-lab.zip。公開サイト自体の更新・GitHubへのアップロードはこの確認には含まれません。</p>
+<h2>確認結果</h2>
+<ul>
+<li>入力227ファイルを確認。JSONはpackage.jsonと人工デモ履歴のみ。人工デモはsynthetic=true・360回答・利用者synthetic-demo。</li>
+<li>個人の元回答履歴、APIキー・トークン・秘密鍵、メールアドレス、環境設定ファイル、node_modules、Git履歴、ホスティング設定の混入は見つからなかった。ファイル名・テキスト内容の確認であり、あらゆる秘密情報の不在を保証するものではない。</li>
+<li>実利用結果の資料は集計値と原本ハッシュだけ。実利用者の元データは非同梱。音源の出典と利用条件はdist/audio/CREDITS.txtを保持。</li>
+<li>npm test：15テストファイル成功、失敗0。出題、採点、履歴互換、未来情報の分離、モデル予測の再現などを確認。</li>
+<li>人工データのCLI実験：学習290問・評価70問、14方式の指標を出力し終了コード0。これは動作確認であり学習効果の証拠ではない。</li>
+<li>HTML内のID重複とローカルリンク切れは0。</li>
+<li>配布ZIPを別フォルダへ展開しnpm startで起動。HTML・JS・CSS・デモ履歴・資料9ファイルのHTTP取得内容がソースと完全一致。MP3もHTTP 200で取得できた。</li>
+</ul>
+<h2>整理した内容</h2>
+<ul>
+<li>手元の文章・Brier説明・記録順・保存案内の移動を保持。</li>
+<li>移動元に残った不要な閉じpタグを除去。</li>
+<li>紹介ページの、非同梱ZIPへのリンクをREADMEの起動手順へ変更。</li>
+<li>READMEと再現手順にWindowsのnpm.cmdの案内を追加。サーバー起動時の旧名を更新。</li>
+<li>個人エクスポート・環境設定・ログ等の除外パターンを.gitignoreに追加。人工デモデータは保持。</li>
+<li>READMEと資料から生成するWeb表示用ページを更新。</li>
+</ul>
+<h2>残る確認</h2>
+<ul>
+<li>下記の配布物起動確認はHTTP応答の確認。実ブラウザでの音声再生、Windows上の動作、個人履歴の移行は利用者が確認する。</li>
+<li>GitHubの公開状態、READMEからの動画再生、外部利用者のアクセス導線は公開後に確認する。</li>
+<li>コード全体のライセンスは未指定。音源のライセンスをソース全体へ適用しない。</li>
+</ul></main></body></html>

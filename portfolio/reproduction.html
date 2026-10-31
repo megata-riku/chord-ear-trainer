@@ -1,0 +1,17 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>再現と動作確認</title><style>body{font:16px/1.9 system-ui,sans-serif;color:#243e35;background:#f5f3ec;margin:0}main{max-width:900px;margin:auto;padding:32px 24px}a{color:#24654d}h1,h2,h3{line-height:1.5;margin-top:32px}pre{overflow:auto;background:#e9ecdf;padding:16px;border-radius:10px}code{font-size:.9em}.scroll{overflow:auto}table{border-collapse:collapse;width:100%}td,th{padding:10px;text-align:left;border-bottom:1px solid #ccd2c5}p,li{overflow-wrap:anywhere}nav{display:flex;gap:20px}</style></head><body><main><nav><a href="../guide.html">← 設計・検証の説明へ</a><a href="reproduction.md" download>Markdownを保存</a></nav><h1>再現と動作確認</h1>
+<h2>ローカル起動</h2>
+<p>Node.js24以降とリポジトリ一式が必要です。ターミナルでリポジトリへ移動し、<code>npm start</code>。<code>http://127.0.0.1:8000/</code> を開きます。WindowsのPowerShellで実行が拒否されたら <code>npm.cmd start</code>（テストは <code>npm.cmd test</code>）を使います。終了はCtrl+C。ポート競合時は <code>node scripts/serve.cjs 8001</code>。</p>
+<p>初期状態のステップ練習を試すか、自由練習で調・楽器・形式を選びます。ブラウザが音声を止める場合は「問題の音を聴く」を押します。学習はブラウザ内、履歴は同一ブラウザ・同一オリジン内です。ローカルとホスト版の履歴は別です。</p>
+<h2>人工データを使う</h2>
+<pre><code>npm run demo:data
+npm run experiment -- dist/demo-history.json artifacts/demo-report.json synthetic-demo</code></pre>
+<p>出力先を変える場合は <code>node scripts/generate-demo.cjs artifacts/sample.json</code>。固定種で360問・36回の履歴を生成します。実際の人の履歴は使いません。種類・キー・楽器で正答傾向を人工的に設定しており、自然な学習過程を再現したものではありません。</p>
+<p>ブラウザでは <code>/demo-history.json</code> を保存し、「履歴を見る→JSONから復元」で追加。予測画面で「360回答」のデモ利用者を選び、比較を実行します。同じファイルの再追加では重複する回答を変更しません。実際の利用者IDへの書き換えは通常のデモ手順には含めません。</p>
+<h2>自分の履歴を再計算する</h2>
+<pre><code>node scripts/experiment.cjs private-data/history.json artifacts/my-report.json USER_ID</code></pre>
+<p>単一利用者のファイルならUSER_IDを省略できます。複数なら明示指定が必要です。不足データは不足理由を保存し終了コード2、入力エラーは1、実行成功は0です。現在のソース版で再計算するため、古いソースで作ったレポートと同じ結果になるとは限りません。</p>
+<p>時刻・レポート作成日時以外の比較は、同じ履歴、利用者・絞り込み条件、ソース、学習設定で行います。CLIは全タスク・全調・全試聴条件を対象にします。ブラウザで範囲を絞った実験との一致は保証しません。</p>
+<p>実験JSONだけから固定モデルの予測を再現する場合は <code>evaluationRows</code> の <code>x</code>、直接履歴は <code>directX</code>、自動共有は <code>autoX[modelFamily]</code> を対応するモデルへ渡します。取り違え情報なしは特徴量の末尾 <code>EarConfusion.features.length</code> 個を0にした入力です。特徴量の再生成・再学習には元の履歴バックアップも必要です。</p>
+<h2>テスト</h2>
+<p><code>npm test</code> はNode標準テストランナーを使用します。調・構成音、候補の一意性・対称性、採点、履歴互換、未来の正誤によるモデル不変性、利用者・試聴条件の分離、モデル保存からの予測再現などを確認します。</p>
+<p>手動では、再生→回答→理由→比較→次問→中断→履歴保存を確認します。これらの機能テストと、実利用者の学習効果の検証は別です。</p></main></body></html>

@@ -1,0 +1,14 @@
+node_modules/
+artifacts/
+private-data/
+
+# Local configuration and personal exports
+.env
+.env.*
+!.env.example
+ear-lab-history*.json
+ear-lab-prediction*.json
+*.log
+.DS_Store
+Thumbs.db
+.openai/

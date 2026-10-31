@@ -1,0 +1,10 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const context=vm.createContext({});vm.runInContext(fs.readFileSync('dist/music-theory.js','utf8'),context);vm.runInContext(fs.readFileSync('dist/reference-policy.js','utf8'),context);vm.runInContext(fs.readFileSync('dist/practice-model.js','utf8'),context);const model=vm.runInContext('PracticeModel',context);
+const session={id:'session-1',startedAt:'2026-10-29T00:00:00Z',updatedAt:'2026-10-29T00:01:00Z',status:'interrupted',total:10,answered:2,correct:1};
+const backup={format:'ear-lab-history',schemaVersion:1,attempts:[],sessions:[session]};
+assert.equal(model.validateBackup(backup).length,0);
+assert.equal(model.validateBackup({...backup,sessions:[{...session,answered:0,correct:0}]}).length,0);
+for(const change of [{answered:11},{correct:3},{total:0},{status:'unknown'},{startedAt:'invalid'}])assert.throws(()=>model.validateBackup({...backup,sessions:[{...session,...change}]}));
+assert.throws(()=>model.validateBackup({...backup,sessions:[session,session]}));
+assert.equal(model.validateBackup({format:backup.format,schemaVersion:1,attempts:[]}).length,0);
+console.log('PASS: interrupted and zero-answer session backup, invalid counts/status/date rejection, duplicate rejection, legacy backup compatibility.');

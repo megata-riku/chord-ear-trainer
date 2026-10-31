@@ -1,0 +1,32 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>構成とデータの流れ</title><style>body{font:16px/1.9 system-ui,sans-serif;color:#243e35;background:#f5f3ec;margin:0}main{max-width:900px;margin:auto;padding:32px 24px}a{color:#24654d}h1,h2,h3{line-height:1.5;margin-top:32px}pre{overflow:auto;background:#e9ecdf;padding:16px;border-radius:10px}code{font-size:.9em}.scroll{overflow:auto}table{border-collapse:collapse;width:100%}td,th{padding:10px;text-align:left;border-bottom:1px solid #ccd2c5}p,li{overflow-wrap:anywhere}nav{display:flex;gap:20px}</style></head><body><main><nav><a href="../guide.html">← 設計・検証の説明へ</a><a href="architecture.md" download>Markdownを保存</a></nav><h1>構成とデータの流れ</h1>
+<pre><code>flowchart TD
+  Q[問題生成・音声再生] --&gt; A[回答・比較再生]
+  A --&gt; H[IndexedDBの履歴]
+  H --&gt; V[検証・時系列特徴量]
+  V --&gt; E[Workerで学習・評価]
+  E --&gt; R[比較画面・実験JSON]
+  H --&gt; S[自由練習の候補評価]
+  S --&gt; P[ルール式またはモデル式で10問を計画]
+  P --&gt; Q</code></pre>
+<h2>責務の対応</h2>
+<div class="scroll"><table>
+<tr><th>コード</th><th>責務</th></tr>
+<tr><td><code>app.js</code>, <code>samples.js</code>, <code>guitar.js</code></td><td>音声と構成音、楽器別の配置・再生</td></tr>
+<tr><td><code>practice.js</code>, <code>practice-model.js</code></td><td>UI、採点、回答記録、バックアップの検証</td></tr>
+<tr><td><code>progression.js</code>, <code>curriculum.js</code></td><td>進行候補・種類の並び調整、ステップ解放</td></tr>
+<tr><td><code>history-store.js</code>, <code>reference-policy.js</code></td><td>IndexedDB、試聴許可と前後の利用回数</td></tr>
+<tr><td><code>transfer-analysis.js</code>, <code>related-pooling.js</code></td><td>部分成績、隣接ペア、関連履歴の有界な借用</td></tr>
+<tr><td><code>confusion-evidence.js</code></td><td>正解→誤答の方向を保った取り違え集計</td></tr>
+<tr><td><code>prediction-model.js</code></td><td>データ分割、特徴量、3種の学習器、比較指標</td></tr>
+<tr><td><code>prediction-worker.js</code>, <code>prediction-ui.js</code></td><td>UIを止めずに評価、結果表示・書き出し</td></tr>
+<tr><td><code>adaptive-selection.js</code>, <code>adaptive-worker.js</code></td><td>セッション開始時の履歴から候補評価・出題計画</td></tr>
+<tr><td><code>scripts/</code></td><td>同じアプリコードを読み込むCLI、デモ生成、ローカル配信</td></tr>
+</table></div>
+<h2>保持するデータ</h2>
+<p>回答は <code>userId / sessionId / id</code>、問題作成・回答時刻、正解と選択した回答、調・楽器・形式・実音の配置、出題方式などを含みます。試聴許可と回答前後の試聴回数は別々です。許可不明の旧履歴は推測で補いません。</p>
+<p>適応出題では、要求した方式と実際の方式、切替理由、履歴締切、種、候補数、出題理由、モデル版、予測ベクトルを保持。モデル本体と学習に使ったIDは練習回ごとに保存し、履歴JSONに含めます。問題の予測に、その問題の回答・反応時間・再生回数は使いません。</p>
+<h2>2つの時間の扱い</h2>
+<p><strong>予測実験</strong>：学習回→未来の評価回へ分割。モデルは固定ですが、すでに提出された評価回答は次問の過去特徴量に反映します。固定履歴での一括予測とは異なります。</p>
+<p><strong>自由練習</strong>：開始時点で提出済みの履歴から10問を計画。モデルと履歴特徴量はその回の開始時点で固定し、途中の回答で計画を変えません。回答後に示す確率は練習開始時の予測です。</p>
+<h2>故障・不足への対応</h2>
+<p>履歴不足または学習失敗はルール式へ切替。Worker開始失敗や30秒超過では範囲全体の出題へ戻します。保存に失敗した場合は画面に通知し、ページを閉じる前のJSON保存を案内します。ブラウザのデータ削除に対するサーバーバックアップはありません。</p></main></body></html>
